@@ -16,7 +16,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <div className="absolute inset-0 h-full w-full bg-[radial-gradient(#1c1c1c_1px,transparent_1px)] [background-size:30px_30px]">
+          {children}
+        </div>
+      </body>
     </html>
   );
 }

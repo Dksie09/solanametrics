@@ -68,7 +68,7 @@ export function FeesDistributionChart() {
   }, []);
 
   return (
-    <Card>
+    <Card className="pt-3">
       <CardHeader>
         <CardTitle>Distribution of Fees per Transaction</CardTitle>
         <CardDescription>

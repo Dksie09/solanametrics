@@ -3,6 +3,8 @@ import Realtime from "./components/Realtime";
 import { Card } from "@/components/ui/card";
 import Performance from "./components/Performance";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -15,7 +17,6 @@ export default function Home() {
       <p className="text-lg sm:text-xl text-center mt-2">
         A solana dashboard for all the metrics you need.
       </p>
-
       <img
         src="/solana-ring.webp"
         alt="Solana"

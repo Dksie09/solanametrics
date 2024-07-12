@@ -12,6 +12,7 @@ function Navbar() {
     { name: "Compute Units", href: "#compute-units" },
     { name: "Blocks", href: "#blocks" },
     { name: "Fees", href: "#fees" },
+    { name: "Summary", href: "#summary" },
   ];
 
   useEffect(() => {

@@ -82,6 +82,20 @@ interface TimeSeriesDataPoint {
   value: number;
 }
 
+export async function getComputeUnitsUsedTimeSeries(
+  startTime: Date,
+  endTime: Date
+): Promise<TimeSeriesDataPoint[]> {
+  return getTimeSeriesData("computeUnitsPerMinute", startTime, endTime);
+}
+
+export async function getFeesCollectedTimeSeries(
+  startTime: Date,
+  endTime: Date
+): Promise<TimeSeriesDataPoint[]> {
+  return getTimeSeriesData("feesPerMinute", startTime, endTime);
+}
+
 async function getTimeSeriesData(
   field: keyof BlockchainStats,
   startTime: Date,

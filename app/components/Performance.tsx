@@ -28,7 +28,7 @@ function Performance() {
           <TPSChart />
           <TPMChart />
         </Card>
-        <div className="flex gap-4 mt-5">
+        <div className="flex flex-col lg:flex-row gap-4 mt-5">
           <VoteNonVoteAreaChart />
           <VoteNonVoteRadialChart />
         </div>

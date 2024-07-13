@@ -89,7 +89,7 @@ export function VoteNonVoteRadialChart() {
   const totalTransactions = chartData.vote + chartData.nonVote;
 
   return (
-    <Card className="flex flex-col w-1/3">
+    <Card className="flex flex-col w-full lg:w-1/3">
       <CardHeader className="items-center">
         <CardTitle className="text-xl text-center">
           Non-Vote vs Vote Transactions

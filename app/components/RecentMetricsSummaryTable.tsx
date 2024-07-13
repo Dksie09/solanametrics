@@ -16,7 +16,6 @@ import {
 } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -59,7 +58,7 @@ const columns: ColumnDef<RecentMetric>[] = [
     },
     cell: ({ row }) => {
       const timestamp: Date = row.getValue("timestamp");
-      return <div>{timestamp.toLocaleString()}</div>;
+      return <div className="font-medium">{timestamp.toLocaleString()}</div>;
     },
   },
   {
@@ -147,8 +146,8 @@ export function RecentMetricsSummary() {
   });
 
   return (
-    <div className="w-full">
-      <div className="flex items-center py-4">
+    <div className="w-full space-y-4">
+      <div className="flex flex-col sm:flex-row items-center py-4">
         <Input
           placeholder="Filter timestamps..."
           value={
@@ -157,7 +156,7 @@ export function RecentMetricsSummary() {
           onChange={(event) =>
             table.getColumn("timestamp")?.setFilterValue(event.target.value)
           }
-          className="max-w-sm"
+          className="max-w-sm mb-4 sm:mb-0"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -186,14 +185,17 @@ export function RecentMetricsSummary() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="rounded-md border">
-        <Table className="">
+      <div className="rounded-md border overflow-hidden">
+        <Table className="min-w-full">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      className="px-2 first:pl-5 last:pr-5"
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -214,7 +216,10 @@ export function RecentMetricsSummary() {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className="px-2 first:pl-5 last:pr-5"
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -224,23 +229,28 @@ export function RecentMetricsSummary() {
                 </TableRow>
               ))
             ) : (
-              <div className="flex flex-col space-y-3">
-                <Skeleton className="h-[125px] w-[250px] " />
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-[250px]" />
-                  <Skeleton className="h-4 w-[200px]" />
-                </div>
-              </div>
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  Loading...
+                  <br />
+                  <p className=" opacity-50 mt-2">
+                    Fetching data can take a few seconds.
+                  </p>
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
+      <div className="flex flex-col sm:flex-row items-center justify-end space-y-2 sm:space-y-0 sm:space-x-2 py-4">
+        <div className="flex-1 text-sm text-muted-foreground text-center sm:text-left">
           Showing the last {table.getFilteredRowModel().rows.length} data
           points.
         </div>
-        <div className="space-x-2">
+        <div className="flex space-x-2">
           <Button
             variant="outline"
             size="sm"

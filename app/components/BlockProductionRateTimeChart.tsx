@@ -14,12 +14,11 @@ import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
 } from "@/components/ui/chart";
 import { getBlockProductionRateTimeSeries } from "../../lib/database";
 
 interface TimeSeriesDataPoint {
-  timestamp: Date;
+  timestamp: Date | string;
   value: number;
 }
 
@@ -48,17 +47,42 @@ export function BlockProductionRateChart() {
       const start24h = new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
       const startAll = new Date(0);
 
-      const data24h = await getBlockProductionRateTimeSeries(start24h, endTime);
-      const dataAll = await getBlockProductionRateTimeSeries(startAll, endTime);
+      try {
+        const data24h = await getBlockProductionRateTimeSeries(
+          start24h,
+          endTime
+        );
+        const dataAll = await getBlockProductionRateTimeSeries(
+          startAll,
+          endTime
+        );
 
-      setChartData({ all: dataAll, "24h": data24h });
+        setChartData({
+          all: dataAll.filter((point) => point.timestamp !== null),
+          "24h": data24h.filter((point) => point.timestamp !== null),
+        });
+      } catch (error) {
+        console.error("Error fetching block production rate data:", error);
+      }
     };
 
     fetchData();
-    // TODO: 50 * 60 * 1000
-    const interval = setInterval(fetchData, 60 * 60 * 1000); // Update every minute
+    const interval = setInterval(fetchData, 5 * 60 * 1000); // Update every 5 minutes
     return () => clearInterval(interval);
   }, []);
+
+  const formatTimestamp = (timestamp: Date | string | null) => {
+    if (!timestamp) return "N/A";
+    const date =
+      typeof timestamp === "string" ? new Date(timestamp) : timestamp;
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+    });
+  };
 
   return (
     <Card className="!border-black">
@@ -102,15 +126,7 @@ export function BlockProductionRateChart() {
               axisLine={false}
               tickMargin={8}
               minTickGap={32}
-              tickFormatter={(value) => {
-                const date = new Date(value);
-                return date.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "numeric",
-                });
-              }}
+              tickFormatter={(value) => formatTimestamp(value)}
             />
             <YAxis
               tickLine={false}
@@ -119,21 +135,34 @@ export function BlockProductionRateChart() {
               tickFormatter={(value) => value.toFixed(2)}
             />
             <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  className="w-[150px]"
-                  nameKey="Block Production Rate"
-                  labelFormatter={(value) => {
-                    return new Date(value).toLocaleString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                      hour: "numeric",
-                      minute: "numeric",
-                    });
-                  }}
-                />
-              }
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const data = payload[0].payload;
+                  return (
+                    <div className="rounded-lg border bg-background p-2 shadow-sm">
+                      <div className="grid grid-cols-1 gap-2">
+                        <div className="flex flex-col">
+                          <span className="text-[0.70rem] uppercase text-muted-foreground">
+                            Time
+                          </span>
+                          <span className="font-bold text-muted-foreground">
+                            {formatTimestamp(data.timestamp)}
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[0.70rem] uppercase text-muted-foreground">
+                            Block Production Rate
+                          </span>
+                          <span className="font-bold">
+                            {data.value.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }}
             />
             <Line
               dataKey="value"

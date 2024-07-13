@@ -1,4 +1,3 @@
-// components/FeesSection.tsx
 "use client";
 import React, { useEffect, useState } from "react";
 import { FeesDistributionChart } from "./FeesDistributionBarChart";
@@ -6,17 +5,17 @@ import { MinFeeCard } from "./MinFeeCard";
 import { MaxFeeCard } from "./MaxFeeCard";
 import { MeanFeeCard } from "./MeanFeeCard";
 import { MedianFeeCard } from "./MedianFeeCard";
-import { ModeFeeCard } from "./ModeFeeCard";
 import { getRecentDataFromAppwrite } from "../../lib/database";
 import { calculateFeeStatistics } from "../../lib/calculateFeeStatistics";
 import { FeesCollectedAreaChart } from "./FeesCollectedAreaChart";
+import { VarianceFeeCard } from "./VarianceFeeCard";
 
 interface FeeStats {
   min: number;
   max: number;
   mean: number;
   median: number;
-  mode: number;
+  variance: number;
 }
 
 export function FeesSection() {
@@ -45,10 +44,10 @@ export function FeesSection() {
           <MaxFeeCard maxFee={feeStats.max} />
           <MeanFeeCard meanFee={feeStats.mean} />
           <MedianFeeCard medianFee={feeStats.median} />
-          <ModeFeeCard modeFee={feeStats.mode} />
+          <VarianceFeeCard varianceFee={feeStats.variance} />
         </div>
       </div>
-      <div className="mt-4">
+      <div className="mt-5">
         <FeesCollectedAreaChart />
       </div>
     </div>

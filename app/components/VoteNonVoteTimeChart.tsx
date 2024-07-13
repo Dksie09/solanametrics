@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import {
   Card,
@@ -16,7 +16,6 @@ import {
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
-  ChartTooltipContent,
 } from "@/components/ui/chart";
 import {
   Select,
@@ -31,7 +30,7 @@ import {
 } from "../../lib/database";
 
 interface TimeSeriesDataPoint {
-  timestamp: Date;
+  timestamp: Date | string;
   vote: number;
   nonVote: number;
 }
@@ -72,24 +71,41 @@ export function VoteNonVoteAreaChart() {
           break;
       }
 
-      const [voteData, nonVoteData] = await Promise.all([
-        getVoteTxPerMinuteTimeSeries(startTime, endTime),
-        getNonVoteTransactionRateTimeSeries(startTime, endTime),
-      ]);
+      try {
+        const [voteData, nonVoteData] = await Promise.all([
+          getVoteTxPerMinuteTimeSeries(startTime, endTime),
+          getNonVoteTransactionRateTimeSeries(startTime, endTime),
+        ]);
 
-      const mergedData = voteData.map((votePoint, index) => ({
-        timestamp: votePoint.timestamp,
-        vote: votePoint.value,
-        nonVote: nonVoteData[index]?.value || 0,
-      }));
+        const mergedData = voteData.map((votePoint, index) => ({
+          timestamp: votePoint.timestamp,
+          vote: votePoint.value,
+          nonVote: nonVoteData[index]?.value || 0,
+        }));
 
-      setChartData(mergedData);
+        setChartData(mergedData);
+      } catch (error) {
+        console.error("Error fetching vote/non-vote data:", error);
+      }
     };
 
     fetchData();
     const interval = setInterval(fetchData, 5 * 60 * 1000); // Update every 5 minutes
     return () => clearInterval(interval);
   }, [timeRange]);
+
+  const formatTimestamp = (timestamp: Date | string | null) => {
+    if (!timestamp) return "N/A";
+    const date =
+      typeof timestamp === "string" ? new Date(timestamp) : timestamp;
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+    });
+  };
 
   return (
     <Card className="w-full lg:w-2/3">
@@ -159,31 +175,51 @@ export function VoteNonVoteAreaChart() {
               axisLine={false}
               tickMargin={8}
               minTickGap={32}
-              tickFormatter={(value) => {
-                const date = new Date(value);
-                return date.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                });
-              }}
+              tickFormatter={(value) => formatTimestamp(value)}
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) => value.toFixed(2)}
             />
             <ChartTooltip
-              cursor={false}
-              content={
-                <ChartTooltipContent
-                  labelFormatter={(value) => {
-                    return new Date(value).toLocaleString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                      hour: "numeric",
-                      minute: "numeric",
-                    });
-                  }}
-                  indicator="dot"
-                />
-              }
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const data = payload[0].payload;
+                  return (
+                    <div className="rounded-lg border bg-background p-2 shadow-sm">
+                      <div className="grid grid-cols-1 gap-2">
+                        <div className="flex flex-col">
+                          <span className="text-[0.70rem] uppercase text-muted-foreground">
+                            Time
+                          </span>
+                          <span className="font-bold text-muted-foreground">
+                            {formatTimestamp(data.timestamp)}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2">
+                          <span className="text-[0.70rem] uppercase text-muted-foreground">
+                            Vote
+                          </span>
+                          <span className="font-bold">
+                            {data.vote.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2">
+                          <span className="text-[0.70rem] uppercase text-muted-foreground">
+                            Non-Vote
+                          </span>
+                          <span className="font-bold">
+                            {data.nonVote.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }}
             />
             <Area
               dataKey="nonVote"

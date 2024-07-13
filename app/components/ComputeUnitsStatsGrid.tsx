@@ -11,27 +11,22 @@ import {
 import { getRecentDataFromAppwrite } from "../../lib/database";
 import { BlockchainStats } from "../../types/BlockchainStats";
 
-function calculateMode(numbers: number[]): number {
-  const frequency: { [key: number]: number } = {};
-  let maxFreq = 0;
-  let mode = numbers[0];
-
-  for (const num of numbers) {
-    frequency[num] = (frequency[num] || 0) + 1;
-    if (frequency[num] > maxFreq) {
-      maxFreq = frequency[num];
-      mode = num;
-    }
-  }
-
-  return mode;
+function calculateVariance(numbers: number[], mean: number): number {
+  return (
+    numbers.reduce((sum, num) => sum + Math.pow(num - mean, 2), 0) /
+    numbers.length
+  );
 }
 
-function formatNumber(value: number, isLarge: boolean): string {
-  if (!isLarge && value >= 1000) {
-    return (value / 1000).toFixed(1) + "k";
+function formatNumber(value: number): string {
+  if (value >= 1_000_000_000) {
+    return Math.round(value / 1_000_000_000) + "B";
+  } else if (value >= 1_000_000) {
+    return Math.round(value / 1_000_000) + "M";
+  } else if (value >= 1000) {
+    return Math.round(value / 1000) + "K";
   }
-  return value.toFixed(2);
+  return Math.round(value).toString();
 }
 
 function StatCard({
@@ -43,15 +38,35 @@ function StatCard({
   value: number;
   isLarge?: boolean;
 }) {
-  const [formattedValue, setFormattedValue] = useState(
-    formatNumber(value, isLarge)
-  );
+  const [textSize, setTextSize] = useState("text-xl");
 
   useEffect(() => {
     const handleResize = () => {
-      setFormattedValue(
-        formatNumber(value, isLarge || window.innerWidth >= 768)
-      );
+      const formattedValue = formatNumber(value);
+      const width = window.innerWidth;
+      let size;
+
+      if (isLarge) {
+        if (width >= 1280) size = "text-4xl";
+        else if (width >= 1024) size = "text-3xl";
+        else if (width >= 768) size = "text-2xl";
+        else size = "text-xl";
+      } else {
+        if (width >= 1280) size = "text-3xl";
+        else if (width >= 1024) size = "text-2xl";
+        else size = "text-xl";
+      }
+
+      // Further reduce size if the number is long
+      if (formattedValue.length > 8) {
+        size = size
+          .replace("xl", "lg")
+          .replace("2xl", "xl")
+          .replace("3xl", "2xl")
+          .replace("4xl", "3xl");
+      }
+
+      setTextSize(size);
     };
 
     window.addEventListener("resize", handleResize);
@@ -66,24 +81,21 @@ function StatCard({
         <CardDescription className="font-medium">{title}</CardDescription>
       </CardHeader>
       <div className="flex-grow p-2 flex items-center justify-center">
-        <div
-          className={`${
-            isLarge ? "xl:text-3xl lg:text-2xl md:text-3xl text-xl" : "text-xl"
-          } font-bold truncate`}
-        >
-          {formattedValue}
+        <div className={`${textSize} font-bold truncate`}>
+          {formatNumber(value)}
         </div>
       </div>
     </Card>
   );
 }
+
 export function ComputeUnitsStatsGrid() {
   const [stats, setStats] = useState<{
     min: number;
     max: number;
     mean: number;
     median: number;
-    mode: number;
+    variance: number;
   } | null>(null);
 
   useEffect(() => {
@@ -105,9 +117,9 @@ export function ComputeUnitsStatsGrid() {
                 computeUnits[computeUnits.length / 2]) /
               2
             : computeUnits[Math.floor(computeUnits.length / 2)];
-        const mode = calculateMode(computeUnits);
+        const variance = calculateVariance(computeUnits, mean);
 
-        setStats({ min, max, mean, median, mode });
+        setStats({ min, max, mean, median, variance });
       }
     };
 
@@ -131,7 +143,7 @@ export function ComputeUnitsStatsGrid() {
         <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <StatCard title="Mean" value={stats.mean} />
           <StatCard title="Median" value={stats.median} />
-          <StatCard title="Mode" value={stats.mode} />
+          <StatCard title="Variance" value={stats.variance} />
         </div>
       </div>
     </div>

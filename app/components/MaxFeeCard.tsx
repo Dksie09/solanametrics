@@ -17,10 +17,10 @@ export function MaxFeeCard({ maxFee }: MaxFeeCardProps) {
   return (
     <Card className="h-24">
       <CardHeader className="pb-1 pt-5">
-        <CardDescription>Maximum Fee</CardDescription>
+        <CardDescription>Maximum Fee (Lamports)</CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-2xl font-bold">{maxFee.toLocaleString()} Lamports</p>
+        <p className="text-2xl font-bold">{maxFee.toLocaleString()}</p>
       </CardContent>
     </Card>
   );

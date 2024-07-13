@@ -14,7 +14,6 @@ import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
 } from "@/components/ui/chart";
 import {
   Select,
@@ -26,7 +25,7 @@ import {
 import { getComputeUnitsUsedTimeSeries } from "../../lib/database";
 
 interface TimeSeriesDataPoint {
-  timestamp: Date;
+  timestamp: Date | string;
   value: number;
 }
 
@@ -59,14 +58,31 @@ export function ComputeUnitsAreaChart() {
           break;
       }
 
-      const data = await getComputeUnitsUsedTimeSeries(startTime, endTime);
-      setChartData(data);
+      try {
+        const data = await getComputeUnitsUsedTimeSeries(startTime, endTime);
+        setChartData(data.filter((point) => point.timestamp !== null));
+      } catch (error) {
+        console.error("Error fetching compute units data:", error);
+      }
     };
 
     fetchData();
     const interval = setInterval(fetchData, 5 * 60 * 1000); // Update every 5 minutes
     return () => clearInterval(interval);
   }, [timeRange]);
+
+  const formatTimestamp = (timestamp: Date | string | null) => {
+    if (!timestamp) return "N/A";
+    const date =
+      typeof timestamp === "string" ? new Date(timestamp) : timestamp;
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+    });
+  };
 
   return (
     <Card className="w-full">
@@ -124,14 +140,7 @@ export function ComputeUnitsAreaChart() {
               axisLine={false}
               tickMargin={8}
               minTickGap={32}
-              tickFormatter={(value) => {
-                const date = new Date(value);
-                return date.toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                });
-              }}
+              tickFormatter={(value) => formatTimestamp(value)}
             />
             <YAxis
               tickLine={false}
@@ -140,20 +149,33 @@ export function ComputeUnitsAreaChart() {
               tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
             />
             <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent />}
-              formatter={(value: number) => [
-                `${value.toLocaleString()} CU`,
-                "Compute Units",
-              ]}
-              labelFormatter={(label: string) => {
-                return new Date(label).toLocaleString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                  hour: "numeric",
-                  minute: "numeric",
-                });
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const data = payload[0].payload;
+                  return (
+                    <div className="rounded-lg border bg-background p-2 shadow-sm">
+                      <div className="grid grid-cols-1 gap-2">
+                        <div className="flex flex-col">
+                          <span className="text-[0.70rem] uppercase text-muted-foreground">
+                            Time
+                          </span>
+                          <span className="font-bold text-muted-foreground">
+                            {formatTimestamp(data.timestamp)}
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[0.70rem] uppercase text-muted-foreground">
+                            Compute Units
+                          </span>
+                          <span className="font-bold">
+                            {data.value.toLocaleString()} CU
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
               }}
             />
             <Area

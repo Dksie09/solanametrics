@@ -62,15 +62,13 @@ function StatCard({
 
   return (
     <Card className="flex flex-col h-40 p-0 sm:p-2">
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-0">
         <CardDescription className="font-medium">{title}</CardDescription>
       </CardHeader>
-      <div className="flex-grow flex items-center justify-center">
+      <div className="flex-grow p-2 flex items-center justify-center">
         <div
           className={`${
-            isLarge
-              ? "xl:text-3xl lg:text-2xl md:text-3xl text-xl"
-              : "xl:text-xl text-md lg:text-lg md:text-xl"
+            isLarge ? "xl:text-3xl lg:text-2xl md:text-3xl text-xl" : "text-xl"
           } font-bold truncate`}
         >
           {formattedValue}
@@ -130,7 +128,7 @@ export function ComputeUnitsStatsGrid() {
           <StatCard title="Min" value={stats.min} isLarge={true} />
           <StatCard title="Max" value={stats.max} isLarge={true} />
         </div>
-        <div className="flex-1 grid grid-cols-3 gap-4">
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <StatCard title="Mean" value={stats.mean} />
           <StatCard title="Median" value={stats.median} />
           <StatCard title="Mode" value={stats.mode} />

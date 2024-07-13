@@ -56,7 +56,7 @@ function Performance() {
         <h1 className="text-3xl font-bold ml-5">Overview</h1>
         <p className="text-lg mb-6 ml-5">
           {" "}
-          A quick summary of all the recent metrics.{" "}
+          A quick summary of all the metrics.{" "}
         </p>
         <div className="container mx-auto flex items-center justify-center !border-transparent shadow-lg  p-4 gap-10">
           <BlockchainAveragesTable />

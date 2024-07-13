@@ -31,7 +31,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getLatestDataFromAppwrite } from "../../lib/database";
+import { getRecentDataFromAppwrite } from "../../lib/database";
 import { BlockchainStats } from "../../types/BlockchainStats";
 
 type RecentMetric = {
@@ -103,26 +103,27 @@ export function RecentMetricsSummary() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [data, setData] = React.useState<RecentMetric[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
     const fetchData = async () => {
-      const recentData: BlockchainStats[] = [];
-      for (let i = 0; i < 10; i++) {
-        const latestData = await getLatestDataFromAppwrite();
-        if (latestData) {
-          recentData.push(latestData);
-        }
+      setIsLoading(true);
+      try {
+        const recentData = await getRecentDataFromAppwrite(10);
+        const formattedData: RecentMetric[] = recentData.map((d) => ({
+          timestamp: d.timestamp,
+          tps: d.tps,
+          tpm: d.tpm,
+          blockProductionRate: d.blockProductionRate,
+          blocktime: d.blocktime,
+        }));
+        setData(formattedData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        // Optionally set an error state here
+      } finally {
+        setIsLoading(false);
       }
-
-      const formattedData: RecentMetric[] = recentData.map((d) => ({
-        timestamp: d.timestamp,
-        tps: d.tps,
-        tpm: d.tpm,
-        blockProductionRate: d.blockProductionRate,
-        blocktime: d.blocktime,
-      }));
-
-      setData(formattedData);
     };
 
     fetchData();
@@ -190,26 +191,37 @@ export function RecentMetricsSummary() {
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      className="px-2 first:pl-5 last:pr-5"
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  );
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className="px-2 first:pl-5 last:pr-5"
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  Loading...
+                  <br />
+                  <p className="opacity-50 mt-2">
+                    Fetching data can take a few seconds.
+                  </p>
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -234,11 +246,7 @@ export function RecentMetricsSummary() {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Loading...
-                  <br />
-                  <p className=" opacity-50 mt-2">
-                    Fetching data can take a few seconds.
-                  </p>
+                  No results.
                 </TableCell>
               </TableRow>
             )}

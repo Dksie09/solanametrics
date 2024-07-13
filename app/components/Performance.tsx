@@ -17,6 +17,7 @@ import { MinFeeCard } from "./MinFeeCard";
 import { FeesSection } from "./FeeSection";
 import { ComputeUnitsAreaChart } from "./ComputeUnitsAreaChart";
 import { BlockchainAveragesTable } from "./SummaryTable";
+import { ComputeUnitsStatsGrid } from "./ComputeUnitsStatsGrid";
 
 function Performance() {
   return (
@@ -37,7 +38,10 @@ function Performance() {
       <div id="compute-units" className="p-5 sm:p-8 md:p-10 mx-auto w-full">
         <h1 className="text-3xl font-bold mb-6">Compute Units</h1>
         <ComputeUnitsDistributionChart />
-        <div className="my-6">
+        <div className="my-6 flex flex-col lg:flex-row gap-4">
+          <div className="h-full w-full">
+            <ComputeUnitsStatsGrid />
+          </div>
           <ComputeUnitsAreaChart />
         </div>
       </div>

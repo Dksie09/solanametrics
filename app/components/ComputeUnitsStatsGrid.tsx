@@ -61,11 +61,11 @@ function StatCard({
   }, [value, isLarge]);
 
   return (
-    <Card className="flex flex-col h-40">
+    <Card className="flex flex-col h-40 p-0 sm:p-2">
       <CardHeader className="pb-2">
         <CardDescription className="font-medium">{title}</CardDescription>
       </CardHeader>
-      <CardContent className="flex-grow flex items-center justify-center">
+      <div className="flex-grow flex items-center justify-center">
         <div
           className={`${
             isLarge
@@ -75,7 +75,7 @@ function StatCard({
         >
           {formattedValue}
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 }

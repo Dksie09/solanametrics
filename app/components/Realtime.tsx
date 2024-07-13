@@ -65,12 +65,12 @@ function Realtime() {
   }
 
   return (
-    <div className="p-4 rounded-lg shadow m-10">
+    <div className="sm:p-4 p-0 rounded-lg shadow sm:m-10 m-0">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 xxl:grid-cols-4 gap-4">
         {statsToDisplay.map((item) => (
           <Card
             key={item.key}
-            className={`p-4 border h-32 min-w-72 rounded-xl flex flex-col items-center shadow-md justify-center ${item.className} hover:shadow-2xl ${item.hoverclassName}`}
+            className={`sm:p-4 p-0 border h-32 min-w-72 rounded-xl flex flex-col items-center shadow-md justify-center ${item.className} hover:shadow-2xl ${item.hoverclassName}`}
           >
             <CardDescription>{item.label}</CardDescription>
             <CardTitle className="text-center justify-center text-3xl">

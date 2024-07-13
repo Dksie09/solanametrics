@@ -1,10 +1,6 @@
-import Image from "next/image";
 import Realtime from "./components/Realtime";
-import { Card } from "@/components/ui/card";
 import Performance from "./components/Performance";
 import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (

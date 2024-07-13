@@ -60,7 +60,6 @@ export function VoteNonVoteRadialChart() {
 
       setChartData({ vote: totalVote, nonVote: totalNonVote });
 
-      // Calculate trend (example: comparing to previous 24 hours)
       const previousStartTime = new Date(
         startTime.getTime() - 24 * 60 * 60 * 1000
       );
@@ -82,7 +81,7 @@ export function VoteNonVoteRadialChart() {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 5 * 60 * 1000); // Update every 5 minutes
+    const interval = setInterval(fetchData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 

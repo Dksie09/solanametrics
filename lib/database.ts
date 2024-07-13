@@ -102,18 +102,38 @@ async function getTimeSeriesData(
   endTime: Date
 ): Promise<TimeSeriesDataPoint[]> {
   try {
+    console.log(
+      `Fetching ${field} data from ${startTime.toISOString()} to ${endTime.toISOString()}`
+    );
+
     const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.greaterThanEqual("timestamp", startTime.toISOString()),
-      Query.lessThanEqual("timestamp", endTime.toISOString()),
-      Query.orderAsc("timestamp"),
+      Query.greaterThan("timestamp", startTime.toISOString()),
+      Query.lessThan("timestamp", endTime.toISOString()),
+      Query.orderDesc("timestamp"),
+      Query.limit(1000),
     ]);
 
-    return response.documents.map((doc) => ({
-      timestamp: new Date(doc.timestamp),
-      value: doc[field] as number,
-    }));
+    console.log(`Received ${response.documents.length} documents`);
+
+    if (response.documents.length === 0) {
+      console.log("No documents found in the specified time range");
+    }
+
+    const data = response.documents.map((doc) => {
+      const timestamp = new Date(doc.timestamp);
+      const value = doc[field] as number;
+      console.log(`Timestamp: ${timestamp.toISOString()}, Value: ${value}`);
+      return { timestamp, value };
+    });
+
+    console.log(`Returning ${data.length} data points`);
+    return data.reverse(); // Reverse to maintain ascending order
   } catch (error) {
     console.error(`Error fetching ${field} time series data:`, error);
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
     return [];
   }
 }

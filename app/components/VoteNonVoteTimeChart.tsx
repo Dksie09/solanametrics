@@ -111,9 +111,9 @@ export function VoteNonVoteAreaChart() {
     <Card className="w-full lg:w-2/3">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>Vote vs Non-Vote Transaction Rate</CardTitle>
+          <CardTitle>Vote vs Non-Vote Transaction Rate Per Minute</CardTitle>
           <CardDescription>
-            Comparing vote and non-vote transaction rates over time
+            Comparing vote and non-vote transaction rates per min over time
           </CardDescription>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>

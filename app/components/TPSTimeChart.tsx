@@ -14,7 +14,6 @@ import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
 } from "@/components/ui/chart";
 import { getTpsTimeSeries } from "../../lib/database";
 
@@ -41,30 +40,66 @@ export function TPSChart() {
     all: TimeSeriesDataPoint[];
     "24h": TimeSeriesDataPoint[];
   }>({ all: [], "24h": [] });
+  const [lastUpdate, setLastUpdate] = React.useState(new Date());
 
-  React.useEffect(() => {
-    const fetchData = async () => {
-      const endTime = new Date();
-      const start24h = new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
-      const startAll = new Date(0); // Beginning of time
+  const fetchData = React.useCallback(async () => {
+    const endTime = new Date();
+    const start24h = new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
+    const startAll = new Date(endTime.getTime() - 30 * 24 * 60 * 60 * 1000); // Fetch last 30 days
 
-      const data24h = await getTpsTimeSeries(start24h, endTime);
-      const dataAll = await getTpsTimeSeries(startAll, endTime);
+    console.log(
+      `Fetching data from ${startAll.toISOString()} to ${endTime.toISOString()}`
+    );
+
+    try {
+      const [data24h, dataAll] = await Promise.all([
+        getTpsTimeSeries(start24h, endTime),
+        getTpsTimeSeries(startAll, endTime),
+      ]);
+
+      console.log(
+        `Received ${data24h.length} data points for 24h and ${dataAll.length} for all time`
+      );
+
+      const filteredData24h = data24h.filter(
+        (point) => point.timestamp !== null
+      );
+      const filteredDataAll = dataAll.filter(
+        (point) => point.timestamp !== null
+      );
+
+      console.log(
+        `24h data range: ${filteredData24h[0]?.timestamp} to ${
+          filteredData24h[filteredData24h.length - 1]?.timestamp
+        }`
+      );
+      console.log(
+        `All data range: ${filteredDataAll[0]?.timestamp} to ${
+          filteredDataAll[filteredDataAll.length - 1]?.timestamp
+        }`
+      );
 
       setChartData({
-        all: dataAll.filter((point) => point.timestamp !== null),
-        "24h": data24h.filter((point) => point.timestamp !== null),
+        all: filteredDataAll,
+        "24h": filteredData24h,
       });
-    };
-
-    fetchData();
-    const interval = setInterval(fetchData, 5 * 60 * 1000); // Update every 5 minutes
-    return () => clearInterval(interval);
+      setLastUpdate(new Date());
+    } catch (error) {
+      console.error("Error fetching TPS data:", error);
+    }
   }, []);
 
-  const formatTimestamp = (timestamp: Date | null) => {
+  React.useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 60 * 1000); // Update every minute
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  const formatTimestamp = (timestamp: Date | string | null) => {
     if (!timestamp) return "N/A";
-    return timestamp.toLocaleString("en-US", {
+    const date =
+      typeof timestamp === "string" ? new Date(timestamp) : timestamp;
+    return date.toLocaleString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -74,11 +109,14 @@ export function TPSChart() {
   };
 
   return (
-    <Card className=" !border-black">
+    <Card className="!border-black">
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
-          <CardTitle className=" text-lg">Transactions Per Second</CardTitle>
+          <CardTitle className="text-lg">Transactions Per Second</CardTitle>
           <CardDescription>over time</CardDescription>
+          <CardDescription>
+            Last updated: {formatTimestamp(lastUpdate)}
+          </CardDescription>
         </div>
         <div className="flex">
           {(Object.keys(chartConfig) as Array<keyof typeof chartConfig>).map(
@@ -117,7 +155,7 @@ export function TPSChart() {
               axisLine={false}
               tickMargin={8}
               minTickGap={32}
-              tickFormatter={(value: Date) => formatTimestamp(value)}
+              tickFormatter={(value) => formatTimestamp(value)}
             />
             <YAxis
               tickLine={false}

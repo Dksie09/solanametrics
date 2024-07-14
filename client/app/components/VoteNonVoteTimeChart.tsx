@@ -74,25 +74,50 @@ export function VoteNonVoteAreaChart() {
           getNonVoteTransactionRateTimeSeries(startTime, endTime),
         ]);
 
-        const mergedData = voteData.reduce((acc, votePoint, index) => {
-          const nonVotePoint = nonVoteData[index];
-          const prevDataPoint = acc[acc.length - 1];
+        const processData = (
+          data: { timestamp: Date | string; value: number }[]
+        ) => {
+          let lastNonZeroValue = 0;
+          let sumNonZero = 0;
+          let countNonZero = 0;
 
-          const newDataPoint: TimeSeriesDataPoint = {
+          // First pass: calculate average non-zero value and find last non-zero value
+          data.forEach((point) => {
+            if (point.value > 0) {
+              sumNonZero += point.value;
+              countNonZero++;
+              lastNonZeroValue = point.value;
+            }
+          });
+
+          const avgNonZero = countNonZero > 0 ? sumNonZero / countNonZero : 1; // Use 1 as fallback
+          const threshold = avgNonZero * 3; // Lower threshold for spike detection
+
+          // Second pass: process data
+          return data.map((point) => {
+            if (point.value <= 0) {
+              // Replace zero or negative with a small positive value
+              return Math.max(avgNonZero * 0.1, lastNonZeroValue * 0.1);
+            } else if (point.value > threshold) {
+              // More aggressive spike normalization
+              return Math.min(point.value, avgNonZero * 1.5);
+            } else {
+              lastNonZeroValue = point.value;
+              return point.value;
+            }
+          });
+        };
+
+        const processedVoteData = processData(voteData);
+        const processedNonVoteData = processData(nonVoteData);
+
+        const mergedData: TimeSeriesDataPoint[] = voteData.map(
+          (votePoint, index) => ({
             timestamp: votePoint.timestamp,
-            vote:
-              votePoint.value === 0 && prevDataPoint
-                ? prevDataPoint.vote
-                : votePoint.value,
-            nonVote:
-              nonVotePoint?.value === 0 && prevDataPoint
-                ? prevDataPoint.nonVote
-                : nonVotePoint?.value || 0,
-          };
-
-          acc.push(newDataPoint);
-          return acc;
-        }, [] as TimeSeriesDataPoint[]);
+            vote: processedVoteData[index],
+            nonVote: processedNonVoteData[index],
+          })
+        );
 
         setChartData(mergedData);
       } catch (error) {

@@ -58,26 +58,50 @@ export function ComputeUnitsAreaChart() {
       try {
         const data = await getComputeUnitsUsedTimeSeries(startTime, endTime);
 
-        let lastNonZeroValue = 0;
-        const processedData = data.reduce((acc, point) => {
-          if (point.timestamp === null) return acc;
+        const processData = (rawData: TimeSeriesDataPoint[]) => {
+          let lastNonZeroValue = 0;
+          let sumNonZero = 0;
+          let countNonZero = 0;
 
-          if (point.value !== 0) lastNonZeroValue = point.value;
+          // First pass: calculate average non-zero value and find last non-zero value
+          rawData.forEach((point) => {
+            if (point.value > 0) {
+              sumNonZero += point.value;
+              countNonZero++;
+              lastNonZeroValue = point.value;
+            }
+          });
 
-          const newDataPoint: TimeSeriesDataPoint = {
-            timestamp: point.timestamp,
-            value: point.value === 0 ? lastNonZeroValue : point.value,
-          };
+          const avgNonZero = countNonZero > 0 ? sumNonZero / countNonZero : 1; // Use 1 as fallback
+          const threshold = avgNonZero * 3; // Lower threshold for spike detection
 
-          acc.push(newDataPoint);
-          return acc;
-        }, [] as TimeSeriesDataPoint[]);
+          // Second pass: process data
+          return rawData.map((point) => {
+            if (point.timestamp === null) return point;
 
-        if (lastNonZeroValue === 0) {
-          console.warn("All values are zero in the selected time range");
-          // You might want to handle this case differently
-        }
+            let processedValue: number;
+            if (point.value <= 0) {
+              // Replace zero or negative with a small positive value
+              processedValue = Math.max(
+                avgNonZero * 0.1,
+                lastNonZeroValue * 0.1
+              );
+            } else if (point.value > threshold) {
+              // More aggressive spike normalization
+              processedValue = Math.min(point.value, avgNonZero * 1.5);
+            } else {
+              lastNonZeroValue = point.value;
+              processedValue = point.value;
+            }
 
+            return {
+              timestamp: point.timestamp,
+              value: processedValue,
+            };
+          });
+        };
+
+        const processedData = processData(data);
         setChartData(processedData);
       } catch (error) {
         console.error("Error fetching compute units data:", error);

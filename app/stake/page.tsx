@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import Image from "next/image";
 import { Data } from "../components/Data";
+import Navbar from "./navbar";
 
 export default function Home() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -29,6 +30,7 @@ export default function Home() {
       className="flex min-h-screen flex-col items-center p-5 sm:p-24 relative overflow-clip scroll-smooth"
       id="home"
     >
+      <Navbar />
       <h1 className="text-4xl sm:text-6xl mt-20 text-center font-bold">
         Staking <br />
         Reward Statements

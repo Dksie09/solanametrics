@@ -38,24 +38,24 @@ const statsToDisplay = [
 
 function Realtime() {
   const [stats, setStats] = useState<BlockchainStats | null>(null);
-  const [countdown, setCountdown] = useState(60);
+  const [countdown, setCountdown] = useState(180);
 
   const fetchLatestStats = async () => {
     const latestData = await getLatestDataFromAppwrite();
     if (latestData) {
       setStats(latestData);
-      setCountdown(60); // Reset countdown after fetching new data
+      setCountdown(180); // Reset countdown to 3 minutes after fetching new data
     }
   };
 
   useEffect(() => {
     fetchLatestStats();
-    const fetchInterval = setInterval(fetchLatestStats, 60000);
+    const fetchInterval = setInterval(fetchLatestStats, 180000); // 3 minutes in milliseconds
 
     const countdownInterval = setInterval(() => {
       setCountdown((prevCountdown) => {
         if (prevCountdown <= 1) {
-          return 60; // Reset to 60 when it reaches 0
+          return 180; // Reset to 180 when it reaches 0
         }
         return prevCountdown - 1;
       });
@@ -82,7 +82,8 @@ function Realtime() {
   return (
     <div className="sm:p-4 p-0 rounded-lg shadow sm:m-10 m-0">
       <p className="mt-4 text-sm opacity-50">
-        Refreshes in: {countdown} seconds
+        Refreshes in: {Math.floor(countdown / 60)}:
+        {(countdown % 60).toString().padStart(2, "0")} mins
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 xxl:grid-cols-4 gap-4">
         {statsToDisplay.map((item) => (

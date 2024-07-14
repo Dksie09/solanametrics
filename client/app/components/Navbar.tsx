@@ -37,7 +37,7 @@ function Navbar() {
 
   return (
     <nav
-      className={`bg-black shadow-lg shadow-purple-950 md:rounded-full rounded-xl fixed top-5 z-50 transition-transform ${
+      className={`bg-black shadow-lg shadow-purple-950 md:rounded-full rounded-xl fixed top-5 z-50 transition-transform mt-5 ${
         isSticky ? "translate-y-0" : "-translate-y-24"
       }`}
     >

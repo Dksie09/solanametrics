@@ -8,6 +8,14 @@ export default function Home() {
       className="flex min-h-screen flex-col items-center p-5 sm:p-24 relative overflow-clip scroll-smooth"
       id="home"
     >
+      <div className="absolute top-0 w-full">
+        <div className="mx-auto max-w-[90%] h-5 bg-gradient-to-r from-transparent via-purple-700 to-transparent">
+          <p className="text-center text-sm text-white">
+            Beta version: Using rate-limited RPC. Data updates every 3 minutes.
+            Performance may vary.
+          </p>
+        </div>
+      </div>
       <Navbar />
       <h1 className="text-4xl sm:text-6xl mt-20">Solanametrics</h1>
       <p className="text-lg sm:text-xl text-center mt-2">

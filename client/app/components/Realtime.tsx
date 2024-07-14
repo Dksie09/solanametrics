@@ -55,37 +55,48 @@ function Realtime() {
       Pick<BlockchainStats, "tps" | "tpm" | "blockProductionRate" | "blocktime">
     >
   >({});
+  const [debugInfo, setDebugInfo] = useState<string>("");
 
   const fetchLatestStats = async () => {
     const latestData = await getLatestDataFromAppwrite();
     if (latestData) {
       const updatedStats = { ...latestData };
       const updatedLastNonZeroValues = { ...lastNonZeroValues };
+      let debugMessage = "Fetched data:\n";
 
       statsToDisplay.forEach((item) => {
         const key = item.key;
         const value = updatedStats[key];
+        debugMessage += `${key}: ${value}\n`;
+
         if (typeof value === "number" && value !== 0) {
           updatedLastNonZeroValues[key] = value;
+          debugMessage += `Updated last non-zero value for ${key}: ${value}\n`;
         } else if (typeof value === "number" && value === 0) {
           updatedStats[key] = updatedLastNonZeroValues[key] || 0;
+          debugMessage += `Using last non-zero value for ${key}: ${
+            updatedLastNonZeroValues[key] || 0
+          }\n`;
         }
       });
 
       setStats(updatedStats);
       setLastNonZeroValues(updatedLastNonZeroValues);
-      setCountdown(180); // Reset countdown to 3 minutes after fetching new data
+      setCountdown(180);
+      setDebugInfo(debugMessage);
+    } else {
+      setDebugInfo("Failed to fetch data from Appwrite");
     }
   };
 
   useEffect(() => {
     fetchLatestStats();
-    const fetchInterval = setInterval(fetchLatestStats, 180000); // 3 minutes in milliseconds
+    const fetchInterval = setInterval(fetchLatestStats, 180000);
 
     const countdownInterval = setInterval(() => {
       setCountdown((prevCountdown) => {
         if (prevCountdown <= 1) {
-          return 180; // Reset to 180 when it reaches 0
+          return 180;
         }
         return prevCountdown - 1;
       });

@@ -2,9 +2,8 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
-import Image from "next/image";
-import { Data } from "../components/Data";
-import Navbar from "./navbar";
+import { Data } from "./Data";
+import Navbar from "./Navbar";
 
 export default function Home() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -16,7 +15,7 @@ export default function Home() {
       if (address) {
         setWalletAddress(address);
         window.scrollTo({
-          top: inputRef.current.offsetTop - 20, // Adjust the offset as needed
+          top: inputRef.current.offsetTop - 20,
           behavior: "smooth",
         });
       } else {
@@ -65,7 +64,7 @@ export default function Home() {
         className="absolute -top-10 -right-2/3 -z-10"
       />
       {walletAddress && (
-        <div className="mt-20">
+        <div className="mt-20 w-full">
           <Data address={walletAddress} />
         </div>
       )}

@@ -21,7 +21,7 @@ export function VarianceFeeCard({ varianceFee }: VarianceFeeCardProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="text-xl font-bold">{varianceFee.toFixed(2)}</div>
+        <div className="text-lg font-bold">{varianceFee.toFixed(2)}</div>
       </CardContent>
     </Card>
   );

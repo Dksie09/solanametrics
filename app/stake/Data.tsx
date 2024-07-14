@@ -1,12 +1,10 @@
+// Data.tsx
+
 "use client";
 
 import * as React from "react";
 import { useState, useEffect } from "react";
-import {
-  CaretSortIcon,
-  ChevronDownIcon,
-  DotsHorizontalIcon,
-} from "@radix-ui/react-icons";
+import { ChevronDownIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -42,56 +40,31 @@ import {
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 
 type StakeAccount = {
-  id: string;
-  amount: number;
+  pubkey: string;
+  delegatedStake: number;
   activationEpoch: number;
-  deactivationEpoch: number;
-  totalRewardsCollected: number;
+  deactivationEpoch: string | number;
+  totalRewards: number;
 };
 
-const dummyData: StakeAccount[] = Array.from({ length: 50 }, (_, i) => ({
-  id: `ST${i + 1}`,
-  amount: Math.random() * 1000,
-  activationEpoch: Math.floor(Math.random() * 1000),
-  deactivationEpoch: Math.floor(Math.random() * 1000) + 1000,
-  totalRewardsCollected: Math.random() * 100,
-}));
-
-const stats = [
-  {
-    key: "acc",
-    label: "Number of Stake Accounts",
-    decimals: 2,
-    className: "shadow-green-500",
-    hoverclassName: "hover:shadow-green-500",
-  },
-  {
-    key: "balance",
-    label: "Total Stake Balance",
-    decimals: 2,
-    className: "shadow-pink-500",
-    hoverclassName: "hover:shadow-pink-500",
-  },
-  {
-    key: "reward",
-    label: "Total Cumulative Rewards",
-    decimals: 2,
-    className: "shadow-blue-500",
-    hoverclassName: "hover:shadow-blue-500",
-  },
-];
+type StakeAnalysisResult = {
+  totalAccountsFound: number;
+  totalAmountStaked: number;
+  totalRewardsEarned: number;
+  stakeAccounts: StakeAccount[];
+};
 
 export const columns: ColumnDef<StakeAccount>[] = [
   {
-    accessorKey: "id",
+    accessorKey: "pubkey",
     header: "Stake Account",
-    cell: ({ row }) => <div>{row.getValue("id") as string}</div>,
+    cell: ({ row }) => <div>{row.getValue("pubkey") as string}</div>,
   },
   {
-    accessorKey: "amount",
+    accessorKey: "delegatedStake",
     header: "Amount",
     cell: ({ row }) => (
-      <div>{(row.getValue("amount") as number).toFixed(2)}</div>
+      <div>{(row.getValue("delegatedStake") as number).toFixed(2)} SOL</div>
     ),
   },
   {
@@ -102,13 +75,15 @@ export const columns: ColumnDef<StakeAccount>[] = [
   {
     accessorKey: "deactivationEpoch",
     header: "Deactivation Epoch",
-    cell: ({ row }) => <div>{row.getValue("deactivationEpoch") as number}</div>,
+    cell: ({ row }) => (
+      <div>{row.getValue("deactivationEpoch") as string | number}</div>
+    ),
   },
   {
-    accessorKey: "totalRewardsCollected",
+    accessorKey: "totalRewards",
     header: "Total Rewards Collected",
     cell: ({ row }) => (
-      <div>{(row.getValue("totalRewardsCollected") as number).toFixed(2)}</div>
+      <div>{(row.getValue("totalRewards") as number).toFixed(2)} SOL</div>
     ),
   },
   {
@@ -128,7 +103,7 @@ export const columns: ColumnDef<StakeAccount>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(stakeAccount.id)}
+              onClick={() => navigator.clipboard.writeText(stakeAccount.pubkey)}
             >
               Copy account ID
             </DropdownMenuItem>
@@ -144,17 +119,49 @@ export const columns: ColumnDef<StakeAccount>[] = [
 export function Data({ address }: { address: string }) {
   const [data, setData] = useState<StakeAccount[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<{
+    totalAccountsFound: number;
+    totalAmountStaked: number;
+    totalRewardsEarned: number;
+  }>({
+    totalAccountsFound: 0,
+    totalAmountStaked: 0,
+    totalRewardsEarned: 0,
+  });
+
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
 
   useEffect(() => {
-    setTimeout(() => {
-      setData(dummyData);
-      setLoading(false);
-    }, 2000);
-  }, []);
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(
+          `/api/stake-analysis?walletAddress=${address}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+        const result: StakeAnalysisResult = await response.json();
+        setData(result.stakeAccounts);
+        setStats({
+          totalAccountsFound: result.totalAccountsFound,
+          totalAmountStaked: result.totalAmountStaked,
+          totalRewardsEarned: result.totalRewardsEarned,
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [address]);
 
   const table = useReactTable({
     data,
@@ -194,29 +201,42 @@ export function Data({ address }: { address: string }) {
     );
   }
 
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
+
   return (
     <div className="container mx-auto w-full">
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 xxl:grid-cols-3 gap-4 mb-10">
-        {stats.map((item) => (
-          <Card
-            key={item.key}
-            className={`sm:p-4 p-0 border h-32 min-w-72 rounded-xl flex flex-col items-center shadow-md justify-center ${item.className} hover:shadow-2xl ${item.hoverclassName}`}
-          >
-            <CardDescription>{item.label}</CardDescription>
-            <CardTitle className="text-center justify-center text-3xl">
-              10000
-            </CardTitle>
-          </Card>
-        ))}
+        <Card className="shadow-green-500 hover:shadow-green-500">
+          <CardDescription>Number of Stake Accounts</CardDescription>
+          <CardTitle className="text-center justify-center text-3xl">
+            {stats.totalAccountsFound}
+          </CardTitle>
+        </Card>
+        <Card className="shadow-pink-500 hover:shadow-pink-500">
+          <CardDescription>Total Stake Balance</CardDescription>
+          <CardTitle className="text-center justify-center text-3xl">
+            {stats.totalAmountStaked.toFixed(2)} SOL
+          </CardTitle>
+        </Card>
+        <Card className="shadow-blue-500 hover:shadow-blue-500">
+          <CardDescription>Total Cumulative Rewards</CardDescription>
+          <CardTitle className="text-center justify-center text-3xl">
+            {stats.totalRewardsEarned.toFixed(2)} SOL
+          </CardTitle>
+        </Card>
       </div>
 
       <div className="mb-10 mt-20">
         <div className="flex items-center py-4">
           <Input
             placeholder="Filter accounts..."
-            value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
+            value={
+              (table.getColumn("pubkey")?.getFilterValue() as string) ?? ""
+            }
             onChange={(event) =>
-              table.getColumn("id")?.setFilterValue(event.target.value)
+              table.getColumn("pubkey")?.setFilterValue(event.target.value)
             }
             className="max-w-sm border-purple-400 rounded-full p-5"
           />

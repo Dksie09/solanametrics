@@ -38,19 +38,40 @@ export function FeesDistributionChart() {
     const fetchData = async () => {
       const recentData = await getRecentDataFromAppwrite(1000); // Fetch last 1000 data points for better distribution
 
-      const distribution: { [key: string]: number } = {};
-      for (let i = 0; i < 50; i++) {
-        distribution[`${i}k-${i + 1}k`] = 0;
-      }
-      distribution["50k+"] = 0;
+      // Calculate min and max fees
+      const fees = recentData.map(
+        (data: BlockchainStats) => data.feeStats.mean
+      );
+      const minFee = Math.min(...fees);
+      const maxFee = Math.max(...fees);
 
+      // Define the number of ranges you want
+      const numberOfRanges = 50;
+      const rangeSize = Math.ceil((maxFee - minFee) / numberOfRanges);
+
+      // Initialize the distribution object dynamically
+      const distribution: { [key: string]: number } = {};
+      for (let i = 0; i < numberOfRanges; i++) {
+        const rangeStart = minFee + i * rangeSize;
+        const rangeEnd = rangeStart + rangeSize;
+        distribution[
+          `${Math.floor(rangeStart / 1000)}k-${Math.floor(rangeEnd / 1000)}k`
+        ] = 0;
+      }
+      distribution[`${Math.floor(maxFee / 1000)}k+`] = 0;
+
+      // Fill the distribution based on the data
       recentData.forEach((data: BlockchainStats) => {
         const fee = data.feeStats.mean;
-        if (fee >= 50000) {
-          distribution["50k+"]++;
+        if (fee >= maxFee) {
+          distribution[`${Math.floor(maxFee / 1000)}k+`]++;
         } else {
-          const index = Math.floor(fee / 1000);
-          distribution[`${index}k-${index + 1}k`]++;
+          const index = Math.floor((fee - minFee) / rangeSize);
+          const rangeStart = minFee + index * rangeSize;
+          const rangeEnd = rangeStart + rangeSize;
+          distribution[
+            `${Math.floor(rangeStart / 1000)}k-${Math.floor(rangeEnd / 1000)}k`
+          ]++;
         }
       });
 

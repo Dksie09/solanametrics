@@ -38,7 +38,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function FeesCollectedAreaChart() {
-  const [timeRange, setTimeRange] = React.useState("all");
+  const [timeRange, setTimeRange] = React.useState("24h");
   const [chartData, setChartData] = React.useState<TimeSeriesDataPoint[]>([]);
 
   React.useEffect(() => {
@@ -51,11 +51,8 @@ export function FeesCollectedAreaChart() {
           startTime = new Date(endTime.getTime() - 60 * 60 * 1000);
           break;
         case "24h":
-          startTime = new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
-          break;
-        case "all":
         default:
-          startTime = new Date(0);
+          startTime = new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
           break;
       }
 
@@ -93,12 +90,9 @@ export function FeesCollectedAreaChart() {
             className="w-[160px] rounded-lg sm:ml-auto"
             aria-label="Select time range"
           >
-            <SelectValue placeholder="All time" />
+            <SelectValue placeholder="Last 24 hours" />
           </SelectTrigger>
-          <SelectContent className="rounded-xl">
-            <SelectItem value="all" className="rounded-lg">
-              All time
-            </SelectItem>
+          <SelectContent className="">
             <SelectItem value="24h" className="rounded-lg">
               Last 24 hours
             </SelectItem>

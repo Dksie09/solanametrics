@@ -21,7 +21,7 @@ import { BlockchainStats } from "../../types/BlockchainStats";
 
 const chartConfig = {
   computeUnits: {
-    label: "Compute Units",
+    label: "Transactions",
     color: "hsl(var(--chart-5))",
   },
 } satisfies ChartConfig;

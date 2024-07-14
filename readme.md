@@ -6,7 +6,7 @@ Solana Metrics Dashboard is a real-time analytics platform for the Solana blockc
 
 1. [Architecture](#architecture)
 2. [Features](#features)
-3. [Demo](#demo)
+3. [System diagrams](#System-Diagrams)
    - [System Architecture](#system-architecture)
    - [Data Flow](#data-flow)
    - [Database Schema](#database-schema)
@@ -14,7 +14,7 @@ Solana Metrics Dashboard is a real-time analytics platform for the Solana blockc
    - [Prerequisites](#prerequisites)
    - [Setup Steps](#setup-steps)
 5. [Deployment](#deployment)
-6. [Metrics Documentation](#metrics-documentation)
+6. [Metrics Documentation](#Documentation)
 7. [Authors](#authors)
 8. [License](#license)
 
@@ -166,7 +166,7 @@ erDiagram
 - Responsive frontend built with Next.js
 - Efficient data storage and retrieval using Appwrite
 
-# Solana Blockchain Metrics Documentation
+# Documentation
 
 ## Overview
 

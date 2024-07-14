@@ -36,7 +36,7 @@ export function FeesDistributionChart() {
 
   React.useEffect(() => {
     const fetchData = async () => {
-      const recentData = await getRecentDataFromAppwrite(1000); // Fetch last 1000 data points for better distribution
+      const recentData = await getRecentDataFromAppwrite(2000); // Fetch last 1000 data points for better distribution
 
       // Calculate min and max fees
       const fees = recentData.map(
@@ -91,7 +91,7 @@ export function FeesDistributionChart() {
   return (
     <Card className="pt-3">
       <CardHeader>
-        <CardTitle>Distribution of Fees per Transaction</CardTitle>
+        <CardTitle>Fee Distribution Breakdown</CardTitle>
         <CardDescription>
           Based on the last 1000 data points (Fees in Lamports)
         </CardDescription>

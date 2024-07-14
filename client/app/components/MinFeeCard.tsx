@@ -17,10 +17,14 @@ export function MinFeeCard({ minFee }: MinFeeCardProps) {
   return (
     <Card className="h-[86px]">
       <CardHeader className="pb-1 pt-4">
-        <CardDescription>Minimum Fee (Lamports)</CardDescription>
+        <CardDescription>Minimum Fee (SOL)</CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-2xl font-bold">{minFee.toLocaleString()}</p>
+        <p className="text-2xl font-bold">
+          {(minFee / 1000000000).toLocaleString(undefined, {
+            maximumFractionDigits: 8,
+          })}{" "}
+        </p>
       </CardContent>
     </Card>
   );

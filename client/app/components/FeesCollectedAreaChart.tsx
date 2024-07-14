@@ -83,7 +83,9 @@ export function FeesCollectedAreaChart() {
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
           <CardTitle>Fees Collected</CardTitle>
-          <CardDescription>Showing fees collected over time</CardDescription>
+          <CardDescription>
+            Showing fees collected over time [per minute Cumulative]
+          </CardDescription>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
           <SelectTrigger
@@ -155,7 +157,7 @@ export function FeesCollectedAreaChart() {
                         </div>
                         <div className="flex flex-col">
                           <span className="font-bold">
-                            ${(data.value / 1e9).toFixed(4)} B Fees (SOL)
+                            {(data.value / 1000000000).toFixed(4)} SOL/min
                           </span>
                         </div>
                       </div>

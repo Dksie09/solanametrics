@@ -100,30 +100,27 @@ export function ComputeUnitsStatsGrid() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const recentData = await getRecentDataFromAppwrite(100);
+      try {
+        const recentData: BlockchainStats[] = await getRecentDataFromAppwrite(
+          1
+        );
 
-      if (recentData.length > 0) {
-        const computeUnits = recentData.map((d) => d.computeUnitsPerMinute);
-
-        computeUnits.sort((a, b) => a - b);
-
-        const min = computeUnits[0];
-        const max = computeUnits[computeUnits.length - 1];
-        const mean =
-          computeUnits.reduce((sum, val) => sum + val, 0) / computeUnits.length;
-        const median =
-          computeUnits.length % 2 === 0
-            ? (computeUnits[computeUnits.length / 2 - 1] +
-                computeUnits[computeUnits.length / 2]) /
-              2
-            : computeUnits[Math.floor(computeUnits.length / 2)];
-        const variance = calculateVariance(computeUnits, mean);
-
-        setStats({ min, max, mean, median, variance });
+        if (recentData.length > 0) {
+          const latestStats = recentData[0];
+          setStats(latestStats.computeUnitStats);
+        } else {
+          console.error("No data returned from Appwrite");
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
       }
     };
 
     fetchData();
+
+    const intervalId = setInterval(fetchData, 60000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   if (!stats) {

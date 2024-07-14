@@ -102,13 +102,22 @@ export const columns: ColumnDef<StakeAccount>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(stakeAccount.pubkey)}
             >
               Copy account ID
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View details</DropdownMenuItem>
+
+            <DropdownMenuItem
+              onClick={() =>
+                navigator.clipboard.writeText(
+                  stakeAccount.totalRewards.toString()
+                )
+              }
+            >
+              Copy reward
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
@@ -207,22 +216,22 @@ export function Data({ address }: { address: string }) {
 
   return (
     <div className="container mx-auto w-full">
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 xxl:grid-cols-3 gap-4 mb-10">
-        <Card className="shadow-green-500 hover:shadow-green-500">
+      <div className="grid grid-cols-1 md:grid-cols-3  lg:grid-cols-3 xl:grid-cols-3 xxl:grid-cols-3 gap-4 mb-10 lg:mx-56">
+        <Card className="shadow-green-500 hover:shadow-2xl h-32 shadow-lg hover:shadow-green-500 rounded-xl p-5">
           <CardDescription>Number of Stake Accounts</CardDescription>
-          <CardTitle className="text-center justify-center text-3xl">
+          <CardTitle className="text-center justify-center text-3xl mt-5">
             {stats.totalAccountsFound}
           </CardTitle>
         </Card>
-        <Card className="shadow-pink-500 hover:shadow-pink-500">
+        <Card className="shadow-pink-500 hover:shadow-2xl shadow-lg hover:shadow-pink-500 rounded-xl p-5">
           <CardDescription>Total Stake Balance</CardDescription>
-          <CardTitle className="text-center justify-center text-3xl">
+          <CardTitle className="text-center justify-center text-3xl mt-5">
             {stats.totalAmountStaked.toFixed(2)} SOL
           </CardTitle>
         </Card>
-        <Card className="shadow-blue-500 hover:shadow-blue-500">
+        <Card className="shadow-blue-500 hover:shadow-2xl shadow-lg hover:shadow-blue-500 rounded-xl p-5">
           <CardDescription>Total Cumulative Rewards</CardDescription>
-          <CardTitle className="text-center justify-center text-3xl">
+          <CardTitle className="text-center justify-center text-3xl mt-5">
             {stats.totalRewardsEarned.toFixed(2)} SOL
           </CardTitle>
         </Card>

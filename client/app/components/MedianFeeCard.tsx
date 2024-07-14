@@ -17,11 +17,13 @@ export function MedianFeeCard({ medianFee }: MedianFeeCardProps) {
   return (
     <Card className="h-24">
       <CardHeader className="pb-1 pt-5">
-        <CardDescription>Median Fee (Lamports)</CardDescription>
+        <CardDescription>Median Fee (SOL)</CardDescription>
       </CardHeader>
       <CardContent>
         <p className="text-2xl font-bold">
-          {medianFee.toLocaleString(undefined, { maximumFractionDigits: 2 })}{" "}
+          {(medianFee / 1000000000).toLocaleString(undefined, {
+            maximumFractionDigits: 8,
+          })}{" "}
         </p>
       </CardContent>
     </Card>

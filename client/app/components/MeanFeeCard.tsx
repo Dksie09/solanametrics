@@ -17,11 +17,13 @@ export function MeanFeeCard({ meanFee }: MeanFeeCardProps) {
   return (
     <Card className="h-24">
       <CardHeader className="pb-1 pt-5">
-        <CardDescription>Mean Fee (Lamports)</CardDescription>
+        <CardDescription>Mean Fee (SOL)</CardDescription>
       </CardHeader>
       <CardContent>
         <p className="text-2xl font-bold">
-          {meanFee.toLocaleString(undefined, { maximumFractionDigits: 2 })}{" "}
+          {(meanFee / 1000000000).toLocaleString(undefined, {
+            maximumFractionDigits: 8,
+          })}{" "}
         </p>
       </CardContent>
     </Card>

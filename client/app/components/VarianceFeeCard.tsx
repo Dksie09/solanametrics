@@ -17,11 +17,13 @@ export function VarianceFeeCard({ varianceFee }: VarianceFeeCardProps) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardDescription className="font-medium">
-          Variance Fee (Lamports)
+          Variance Fee (SOL)
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="text-lg font-bold">{varianceFee.toFixed(2)}</div>
+        <div className="text-lg font-bold">
+          {(varianceFee / 1000000000).toFixed(8)}
+        </div>
       </CardContent>
     </Card>
   );

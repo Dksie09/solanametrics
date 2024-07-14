@@ -6,9 +6,9 @@ import { MaxFeeCard } from "./MaxFeeCard";
 import { MeanFeeCard } from "./MeanFeeCard";
 import { MedianFeeCard } from "./MedianFeeCard";
 import { getRecentDataFromAppwrite } from "../../lib/database";
-import { calculateFeeStatistics } from "../../lib/calculateFeeStatistics";
 import { FeesCollectedAreaChart } from "./FeesCollectedAreaChart";
 import { VarianceFeeCard } from "./VarianceFeeCard";
+import { BlockchainStats } from "../../types/BlockchainStats";
 
 interface FeeStats {
   min: number;
@@ -23,11 +23,27 @@ export function FeesSection() {
 
   useEffect(() => {
     async function fetchData() {
-      const data = await getRecentDataFromAppwrite(1000);
-      const stats = calculateFeeStatistics(data);
-      setFeeStats(stats);
+      try {
+        const data: BlockchainStats[] = await getRecentDataFromAppwrite(1);
+        if (data.length > 0) {
+          const latestStats = data[0]; // Get the first (most recent) item
+          setFeeStats(latestStats.feeStats);
+        } else {
+          console.error("No data returned from Appwrite");
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
     }
+
+    // Fetch data immediately
     fetchData();
+
+    // Set up interval to fetch data every minute
+    const intervalId = setInterval(fetchData, 60000);
+
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   if (!feeStats) return <div>Loading...</div>;

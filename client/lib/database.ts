@@ -47,7 +47,7 @@ export async function getLatestDataFromAppwrite(): Promise<BlockchainStats | nul
 }
 
 export async function getRecentDataFromAppwrite(
-  limit: number = 10
+  limit: number = 1000
 ): Promise<BlockchainStats[]> {
   try {
     const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [

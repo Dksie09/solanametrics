@@ -5,7 +5,18 @@ import { BlockchainStats } from "../../types/BlockchainStats";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const statsToDisplay = [
+type DisplayStat = {
+  key: keyof Pick<
+    BlockchainStats,
+    "tps" | "tpm" | "blockProductionRate" | "blocktime"
+  >;
+  label: string;
+  decimals: number;
+  className: string;
+  hoverclassName: string;
+};
+
+const statsToDisplay: DisplayStat[] = [
   {
     key: "tps",
     label: "TPS",
@@ -39,11 +50,33 @@ const statsToDisplay = [
 function Realtime() {
   const [stats, setStats] = useState<BlockchainStats | null>(null);
   const [countdown, setCountdown] = useState(180);
+  const [lastNonZeroValues, setLastNonZeroValues] = useState<
+    Partial<
+      Pick<BlockchainStats, "tps" | "tpm" | "blockProductionRate" | "blocktime">
+    >
+  >({});
 
   const fetchLatestStats = async () => {
     const latestData = await getLatestDataFromAppwrite();
     if (latestData) {
-      setStats(latestData);
+      const updatedStats = { ...latestData };
+      const updatedLastNonZeroValues = { ...lastNonZeroValues };
+
+      statsToDisplay.forEach((item) => {
+        const key = item.key;
+        const value = updatedStats[key];
+        if (typeof value === "number" && value !== 0) {
+          updatedLastNonZeroValues[key] = value;
+        } else if (
+          typeof value === "number" &&
+          updatedLastNonZeroValues[key] !== undefined
+        ) {
+          updatedStats[key] = updatedLastNonZeroValues[key] as number;
+        }
+      });
+
+      setStats(updatedStats);
+      setLastNonZeroValues(updatedLastNonZeroValues);
       setCountdown(180); // Reset countdown to 3 minutes after fetching new data
     }
   };
@@ -93,9 +126,7 @@ function Realtime() {
           >
             <CardDescription>{item.label}</CardDescription>
             <CardTitle className="text-center justify-center text-3xl">
-              {(stats[item.key as keyof BlockchainStats] as number).toFixed(
-                item.decimals
-              )}
+              {((stats[item.key] as number) || 0).toFixed(item.decimals)}
             </CardTitle>
           </Card>
         ))}

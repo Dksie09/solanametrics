@@ -135,27 +135,45 @@ export function RecentMetricsSummary() {
           (d) => d.timestamp >= startTime && d.timestamp <= endTime
         );
 
-        const formattedData: RecentMetric[] = filteredData.reduce(
-          (acc, curr, index, array) => {
-            const prevData = index > 0 ? array[index - 1] : null;
-            const formattedMetric: RecentMetric = {
-              timestamp: curr.timestamp,
-              tps: curr.tps === 0 && prevData ? prevData.tps : curr.tps,
-              tpm: curr.tpm === 0 && prevData ? prevData.tpm : curr.tpm,
-              blockProductionRate:
-                curr.blockProductionRate === 0 && prevData
-                  ? prevData.blockProductionRate
-                  : curr.blockProductionRate,
-              blocktime:
-                curr.blocktime === 0 && prevData
-                  ? prevData.blocktime
-                  : curr.blocktime,
-            };
-            acc.push(formattedMetric);
-            return acc;
-          },
-          [] as RecentMetric[]
-        );
+        let lastNonZeroTPS = 0;
+        let lastNonZeroTPM = 0;
+        let lastNonZeroBPR = 0;
+        let lastNonZeroBlocktime = 0;
+
+        const formattedData: RecentMetric[] = filteredData.map((curr) => {
+          // Update last non-zero values
+          if (curr.tps !== 0) lastNonZeroTPS = curr.tps;
+          if (curr.tpm !== 0) lastNonZeroTPM = curr.tpm;
+          if (curr.blockProductionRate !== 0)
+            lastNonZeroBPR = curr.blockProductionRate;
+          if (curr.blocktime !== 0) lastNonZeroBlocktime = curr.blocktime;
+
+          return {
+            timestamp: curr.timestamp,
+            tps: curr.tps === 0 ? lastNonZeroTPS : curr.tps,
+            tpm: curr.tpm === 0 ? lastNonZeroTPM : curr.tpm,
+            blockProductionRate:
+              curr.blockProductionRate === 0
+                ? lastNonZeroBPR
+                : curr.blockProductionRate,
+            blocktime:
+              curr.blocktime === 0 ? lastNonZeroBlocktime : curr.blocktime,
+          };
+        });
+
+        // Handle case where all values are zero
+        if (lastNonZeroTPS === 0)
+          console.warn("All TPS values are zero in the selected time range");
+        if (lastNonZeroTPM === 0)
+          console.warn("All TPM values are zero in the selected time range");
+        if (lastNonZeroBPR === 0)
+          console.warn(
+            "All Block Production Rate values are zero in the selected time range"
+          );
+        if (lastNonZeroBlocktime === 0)
+          console.warn(
+            "All Blocktime values are zero in the selected time range"
+          );
 
         setData(formattedData);
       } catch (error) {

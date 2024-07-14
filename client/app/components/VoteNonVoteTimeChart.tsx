@@ -74,11 +74,25 @@ export function VoteNonVoteAreaChart() {
           getNonVoteTransactionRateTimeSeries(startTime, endTime),
         ]);
 
-        const mergedData = voteData.map((votePoint, index) => ({
-          timestamp: votePoint.timestamp,
-          vote: votePoint.value,
-          nonVote: nonVoteData[index]?.value || 0,
-        }));
+        const mergedData = voteData.reduce((acc, votePoint, index) => {
+          const nonVotePoint = nonVoteData[index];
+          const prevDataPoint = acc[acc.length - 1];
+
+          const newDataPoint: TimeSeriesDataPoint = {
+            timestamp: votePoint.timestamp,
+            vote:
+              votePoint.value === 0 && prevDataPoint
+                ? prevDataPoint.vote
+                : votePoint.value,
+            nonVote:
+              nonVotePoint?.value === 0 && prevDataPoint
+                ? prevDataPoint.nonVote
+                : nonVotePoint?.value || 0,
+          };
+
+          acc.push(newDataPoint);
+          return acc;
+        }, [] as TimeSeriesDataPoint[]);
 
         setChartData(mergedData);
       } catch (error) {
@@ -87,7 +101,7 @@ export function VoteNonVoteAreaChart() {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 5 * 60 * 1000); // Update every 5 minutes
+    const interval = setInterval(fetchData, 3 * 60 * 1000); // Update every 3 minutes
     return () => clearInterval(interval);
   }, [timeRange]);
 

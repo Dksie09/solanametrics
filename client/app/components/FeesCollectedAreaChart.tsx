@@ -56,12 +56,39 @@ export function FeesCollectedAreaChart() {
           break;
       }
 
-      const data = await getFeesCollectedTimeSeries(startTime, endTime);
-      setChartData(data);
+      try {
+        const data = await getFeesCollectedTimeSeries(startTime, endTime);
+
+        let lastNonZeroValue = 0;
+        const processedData = data.reduce((acc, point) => {
+          if (point.timestamp === null) return acc;
+
+          if (point.value !== 0) lastNonZeroValue = point.value;
+
+          const newDataPoint: TimeSeriesDataPoint = {
+            timestamp: point.timestamp,
+            value: point.value === 0 ? lastNonZeroValue : point.value,
+          };
+
+          acc.push(newDataPoint);
+          return acc;
+        }, [] as TimeSeriesDataPoint[]);
+
+        if (lastNonZeroValue === 0) {
+          console.warn(
+            "All values are zero in the selected time range for fees collected"
+          );
+          // You might want to handle this case differently
+        }
+
+        setChartData(processedData);
+      } catch (error) {
+        console.error("Error fetching fees collected data:", error);
+      }
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 5 * 60 * 1000); // Update every 5 minutes
+    const interval = setInterval(fetchData, 3 * 60 * 1000); // Update every 3 minutes
     return () => clearInterval(interval);
   }, [timeRange]);
 

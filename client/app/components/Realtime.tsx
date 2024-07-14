@@ -67,11 +67,8 @@ function Realtime() {
         const value = updatedStats[key];
         if (typeof value === "number" && value !== 0) {
           updatedLastNonZeroValues[key] = value;
-        } else if (
-          typeof value === "number" &&
-          updatedLastNonZeroValues[key] !== undefined
-        ) {
-          updatedStats[key] = updatedLastNonZeroValues[key] as number;
+        } else if (typeof value === "number" && value === 0) {
+          updatedStats[key] = updatedLastNonZeroValues[key] || 0;
         }
       });
 
@@ -126,7 +123,11 @@ function Realtime() {
           >
             <CardDescription>{item.label}</CardDescription>
             <CardTitle className="text-center justify-center text-3xl">
-              {((stats[item.key] as number) || 0).toFixed(item.decimals)}
+              {(
+                (stats[item.key] as number) ||
+                lastNonZeroValues[item.key] ||
+                0
+              ).toFixed(item.decimals)}
             </CardTitle>
           </Card>
         ))}

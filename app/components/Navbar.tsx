@@ -4,10 +4,11 @@ import { Menu, X } from "lucide-react";
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isSticky, setIsSticky] = useState(false);
+  const [isSticky, setIsSticky] = useState(true); // Initially true to show navbar on load
 
   const navItems = [
     { name: "Home", href: "#home" },
+    { name: "Stake", href: "/stake" },
     { name: "Transaction", href: "#transaction" },
     { name: "Compute Units", href: "#compute-units" },
     { name: "Blocks", href: "#blocks" },
@@ -19,7 +20,7 @@ function Navbar() {
     let lastScrollY = window.scrollY;
 
     const handleScroll = () => {
-      if (window.scrollY < lastScrollY) {
+      if (window.scrollY < lastScrollY || window.scrollY === 0) {
         setIsSticky(true);
       } else {
         setIsSticky(false);

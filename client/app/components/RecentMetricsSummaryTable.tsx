@@ -31,6 +31,13 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getRecentDataFromAppwrite } from "../../lib/database";
 import { BlockchainStats } from "../../types/BlockchainStats";
 
@@ -104,30 +111,64 @@ export function RecentMetricsSummary() {
     React.useState<VisibilityState>({});
   const [data, setData] = React.useState<RecentMetric[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [timeRange, setTimeRange] = React.useState("24h");
 
   React.useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const recentData = await getRecentDataFromAppwrite(10);
-        const formattedData: RecentMetric[] = recentData.map((d) => ({
-          timestamp: d.timestamp,
-          tps: d.tps,
-          tpm: d.tpm,
-          blockProductionRate: d.blockProductionRate,
-          blocktime: d.blocktime,
-        }));
+        const recentData = await getRecentDataFromAppwrite(1000);
+        const endTime = new Date();
+        let startTime: Date;
+
+        switch (timeRange) {
+          case "1h":
+            startTime = new Date(endTime.getTime() - 60 * 60 * 1000);
+            break;
+          case "24h":
+          default:
+            startTime = new Date(endTime.getTime() - 24 * 60 * 60 * 1000);
+            break;
+        }
+
+        const filteredData = recentData.filter(
+          (d) => d.timestamp >= startTime && d.timestamp <= endTime
+        );
+
+        const formattedData: RecentMetric[] = filteredData.reduce(
+          (acc, curr, index, array) => {
+            const prevData = index > 0 ? array[index - 1] : null;
+            const formattedMetric: RecentMetric = {
+              timestamp: curr.timestamp,
+              tps: curr.tps === 0 && prevData ? prevData.tps : curr.tps,
+              tpm: curr.tpm === 0 && prevData ? prevData.tpm : curr.tpm,
+              blockProductionRate:
+                curr.blockProductionRate === 0 && prevData
+                  ? prevData.blockProductionRate
+                  : curr.blockProductionRate,
+              blocktime:
+                curr.blocktime === 0 && prevData
+                  ? prevData.blocktime
+                  : curr.blocktime,
+            };
+            acc.push(formattedMetric);
+            return acc;
+          },
+          [] as RecentMetric[]
+        );
+
         setData(formattedData);
       } catch (error) {
         console.error("Error fetching data:", error);
-        // Optionally set an error state here
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+    const interval = setInterval(fetchData, 3 * 60 * 1000); // Update every 3 minutes
+    return () => clearInterval(interval);
+  }, [timeRange]);
 
   const table = useReactTable({
     data,
@@ -157,34 +198,17 @@ export function RecentMetricsSummary() {
           onChange={(event) =>
             table.getColumn("timestamp")?.setFilterValue(event.target.value)
           }
-          className="max-w-sm mb-4 sm:mb-0"
+          className="max-w-sm mb-4 sm:mb-0 mr-4"
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns <ChevronDownIcon className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Select value={timeRange} onValueChange={setTimeRange}>
+          <SelectTrigger className="w-[160px] rounded-lg sm:ml-auto">
+            <SelectValue placeholder="Select time range" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="24h">Last 24 hours</SelectItem>
+            <SelectItem value="1h">Last 1 hour</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div className="rounded-md border overflow-hidden">
         <Table className="min-w-full">
@@ -255,8 +279,8 @@ export function RecentMetricsSummary() {
       </div>
       <div className="flex flex-col sm:flex-row items-center justify-end space-y-2 sm:space-y-0 sm:space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground text-center sm:text-left">
-          Showing the last {table.getFilteredRowModel().rows.length} data
-          points.
+          Showing {table.getFilteredRowModel().rows.length} results for the
+          selected time range.
         </div>
         <div className="flex space-x-2">
           <Button
